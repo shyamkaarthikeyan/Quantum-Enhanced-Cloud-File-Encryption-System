@@ -11,8 +11,7 @@ import { Upload, FileUp } from "lucide-react";
 interface UploadSectionProps {
   isActive: boolean;
 }
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
+const API_URL = "http://54.91.83.80:8080"; // FastAPI backend URL
 
 export default function UploadSection({ isActive }: UploadSectionProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

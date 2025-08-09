@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Database, FileText, Loader } from "lucide-react";
 
-const API_URL = "http://54.91.83.80:8080"; // FastAPI backend URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://54.91.83.80:8080"; // FastAPI backend URL
 
 export default function StorageSection({ isActive }: { isActive: boolean }) {
   const [files, setFiles] = useState<{ name: string; size: number; date: string }[]>([]);
@@ -19,7 +19,6 @@ export default function StorageSection({ isActive }: { isActive: boolean }) {
 
   useEffect(() => {
     const storedDek = localStorage.getItem("decryption_key");
-    console.log("Retrieved DEK:", storedDek); // Debugging
     if (storedDek) setDecryptionKey(storedDek);
   }, []);
 
@@ -57,7 +56,6 @@ export default function StorageSection({ isActive }: { isActive: boolean }) {
     formData.append("encrypted_filename", selectedFile);
 
     try {
-      console.log("Sending DEK for decryption:", decryptionKey); // Debugging
       console.log("Decrypting file:", selectedFile);
 
       const response = await axios.post(`${API_URL}/decrypt/`, formData, { responseType: "blob" });
@@ -65,14 +63,12 @@ export default function StorageSection({ isActive }: { isActive: boolean }) {
       if (response.status === 200) {
         console.log("✅ Decryption successful, downloading file...");
         
-        // Convert blob to a downloadable URL
         const blob = new Blob([response.data], { type: "application/octet-stream" });
         const url = window.URL.createObjectURL(blob);
 
-        // Create download link and trigger automatic download
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", selectedFile.replace("encrypted_", "")); // Remove "encrypted_" prefix
+        link.setAttribute("download", selectedFile.replace("encrypted_", ""));
         document.body.appendChild(link);
         link.click();
 
@@ -84,7 +80,6 @@ export default function StorageSection({ isActive }: { isActive: boolean }) {
       console.error("❌ Error decrypting file:", error);
       alert("❌ Decryption failed. Check if the key is correct.");
 
-      // Send unauthorized access alert
       try {
         await axios.post(`${API_URL}/send-alert`, { message: `⚠️ Unauthorized decryption attempt detected for ${selectedFile}` });
       } catch (alertError) {
@@ -161,7 +156,7 @@ export default function StorageSection({ isActive }: { isActive: boolean }) {
           <div className="flex flex-col gap-4">
             <p className="text-sm text-gray-500">Enter the decryption key to decrypt the selected file.</p>
             <Input
-              type="text"
+              type="password"
               placeholder="Decryption key"
               value={decryptionKey}
               onChange={(e) => setDecryptionKey(e.target.value)}
